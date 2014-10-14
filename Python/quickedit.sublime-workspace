@@ -1,0 +1,1010 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"_updateE",
+				"_updateEmailSettings"
+			],
+			[
+				"_updateDe",
+				"_updateDeviceManagerSettings"
+			],
+			[
+				"_updateBatc",
+				"_updateBatch2Settings"
+			],
+			[
+				"ca",
+				"inputFocusCallback"
+			],
+			[
+				"__dis",
+				"__disablePastHourValue"
+			],
+			[
+				"comp",
+				"comparisonValue"
+			],
+			[
+				"compar",
+				"comparisonValue"
+			],
+			[
+				"testSett",
+				"testSettingsUrl"
+			],
+			[
+				"enab",
+				"enableAviCapture"
+			],
+			[
+				"pr",
+				"privacyinfo"
+			],
+			[
+				"avisc",
+				"avischedule"
+			],
+			[
+				"switchChang",
+				"switchChangeWithTextBox"
+			],
+			[
+				"switchCh",
+				"switchChangeHandler"
+			],
+			[
+				"enc",
+				"encrypt1"
+			],
+			[
+				"boots",
+				"bootstrapSwitch"
+			],
+			[
+				"ove",
+				"overviewTable"
+			],
+			[
+				"_bind",
+				"_bindDataTableUI"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.js",
+			"settings":
+			{
+				"buffer_size": 7350,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.forms.js",
+			"settings":
+			{
+				"buffer_size": 40249,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/sass/dashboard.scss",
+			"settings":
+			{
+				"buffer_size": 14623,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/sass/modules/_forms.scss",
+			"settings":
+			{
+				"buffer_size": 3207,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.tables.js",
+			"settings":
+			{
+				"buffer_size": 18522,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "requirejs.config({\n  shim: {\n    \"jquery.validate\": { deps: [\"jquery\"] },\n    \"jquery.dataTables\": { deps: [\"jquery\"] },\n    \"bootstrap.datatables\": { deps: [\"bootstrap\", \"jquery.dataTables\"] },\n    \"jquery.dataTables.sortNumHtml\": { deps: [\"bootstrap.datatables\"] }\n  }\n});\n\ndefine([\n  \"mustache\",\n  \"jquery.dataTables\",\n  \"bootstrap.datatables\",\n  \"bs.ui.forms\",\n  \"bs.ui.tables\",\n  \"jquery.dataTables.sortNumHtml\",\n  \"jquery.validate\"\n], function(Mustache) {\n  var dd_quick_edit = (function() {\n\n    var $widget,\n        _widget,\n        $table,\n        $form,\n        _dt,\n        _languageFile;\n\n    function _init(widget, data) {\n      $widget = $(\"#\" + widget.widgetId);\n      _widget = widget;\n      _languageFile = bs.dashboard.getLanguageSettingsFile();\n\n      //store dom elements\n      $table = $widget.find(\"#delivery_table\");\n      $form = $widget.find(\"form\");\n\n      //initialize delivery data table\n      _initDeliveryDataTable();\n    }\n\n    function _initDeliveryDataTable() {\n\n      _dt = $table.dataTable({\n        \"sDom\": \"<'row'<'col-sm-6'f><'col-sm-6'>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>\",\n        \"bDrawing\": true,\n        \"bScrollInfinite\": true,\n        \"bScrollCollapse\": true,\n        \"bProcessing\": true,\n        \"bInfo\": false,\n        \"fnInitComplete\": function() {\n          bs.ui.tables.initEditableDataTableRow(_widget, this, null, function() {\n\n            _bindUIActions();\n\n            _initValidation();\n          });//, _updateDeliveryInfo);\n          \n          bs.ui.tables.initRowSelection(this);\n          \n          bs.ui.tables.initTableHeader(this, true);\n          bs.ui.tables.fixInfiniteScroll(this);\n          bs.ui.tables.refreshTableOnResize(this);\n\n          _initMassEditModal();\n\n        },\n        \"aoColumns\": [\n          {\n            \"sTitle\": '<input class=\"select_all_rows\" type=\"checkbox\"/>', \n            \"bSortable\": false, \n            \"sDefaultContent\": '<input class=\"select_row\" type=\"checkbox\" />', \n            \"sWidth\": \"45px\" \n          },\n          { \"sTitle\": \"Delivery Type\", \n            \"mData\": function (source) {\n              var type = source.type,\n                  names = {\n                    \"alert\": \"Alerts\",\n                    \"avi\": \"AVI Transfer\",\n                    \"batch1\": \"Batch 1\",\n                    \"batch2\": \"Batch 2\",\n                    \"devman\": \"Device Manager\",\n                    \"email\": \"Email\",\n                    \"ftp\": \"FTP\",\n                    \"logger\": \"Logger\",\n                    \"realtime\": \"Real Time\",\n                    \"traffic\": \"Traffic Maps\"\n                  },\n                  name = names[type];\n              \n              return '<div class=\"form-control-flat\" fieldname=\"type\" fieldvalue=\"' + type + '\">' + name + '</div>';\n            }\n          },\n          bs.ui.tables.getColumn(\"IP Address\", \"ipAddress\", \"ipAddress\", \"editable\", true),\n          bs.ui.tables.getColumn(\"Port\", \"portNumber\", \"portNumber\", \"editable fitWidth\", true, null, null, \"num-html\"),\n          bs.ui.tables.getColumn(\"URL/Directory\", \"destination\", \"destination\", \"editable fitWidth\", true),\n          bs.ui.tables.getColumn(\"SNI Host\", \"sniHostName\", \"sniHostName\", \"editable fitWidth\", true),\n          bs.ui.tables.getColumn(\"Enabled\", \"enabled\", \"enabled\", \"fitWidth\", true),\n          {\n            \"sTitle\": \"\",\n            \"mData\": function(source) {\n              return '<button data-testtype=\"' + source.type + '\" class=\"test_settings btn btn-link-info btn-md pull-right\">' + _widget.typeSettings.testSettingsButtonLabel + '</button>';\n            }\n          }\n        ],\n        \"sAjaxSource\": _widget.typeSettings.destinationSettingsUrl,\n        \"sAjaxDataProp\": \"deliveryinfo\",\n        \"oLanguage\":{\n          \"sEmptyTable\": \"Empty!\",\n          \"sLoadingRecords\": \"Loading!\",\n          \"sZeroRecords\": \"No match!\",\n          \"sProcessing\": \"\"\n        },\n        \"aaSorting\": [ [1,'asc'] ]\n      });\n    }\n\n    function _bindUIActions() {\n\n      bs.ui.forms.bindInputChanges($form);\n\n      bs.ui.forms.bindResetButton($form);\nconsole.log(\"looking\");\n      console.log($form.find(\"button.test_settings[data-testtype=batch1]\"));\n\n      // bs.titan.utilities.bindTestSettingsButton($form, _widget.typeSettings.testBatch1SettingsUrl, _initValidation, )\n// testBatch1SettingsUrl\n// testBatch2SettingsUrl\n// testEmailSettingsUrl\n// testFtpSettingsUrl\n// testRealTimeSettingsUrl\n// testFlowmapSettingsUrl\n// testAlertSettingsUrl\n// testAviSettingsUrl\n// testDeviceManagerSettingsUrl\n// testLoggingSettingsUrl\n\n      \n      $form.find(\".form_buttons\").removeClass(\"hide\");\n    }\n\n    function _updateDeliveryInfo() {\n      var promise = $.Deferred();\n      bs.utilities.ajaxGet(_widget.typeSettings.updateDestinationSettingsUrl, function (json) {\n        promise.resolve($.parseJSON(json));\n      });\n      return promise;\n    }\n\n    function _initMassEditModal() {\n\n      // grab modal template\n      bs.ui.getTemplate(\"modal\", function(modal_template) {\n\n        // grab template\n        bs.ui.getTemplate(\"edit_form\", function(editForm_template) {\n\n          var editFormTemplateObj = {\n            id: \"edit_destination\",\n            inputs: [\n              {\n                inputHTML: '<input type=\"text\" name=\"ipAddress\" class=\"form-control\" />',\n                label: \"IP Address\",\n                labelClass: 'col-sm-4',\n                inputWrapperClass: 'col-sm-6'\n              },\n              {\n                inputHTML: '<input type=\"text\" name=\"port\" class=\"form-control\" />',\n                label: \"Port\",\n                labelClass: 'col-sm-4',\n                inputWrapperClass: 'col-sm-6'\n              },\n              {\n                inputHTML: '<input type=\"text\" name=\"url\" class=\"form-control\" />',\n                label: \"URL/Directory\",\n                labelClass: 'col-sm-4',\n                inputWrapperClass: 'col-sm-6'\n              },\n              {\n                inputHTML: '<input type=\"text\" name=\"sniHost\" class=\"form-control\" />',\n                label: \"SNI Host\",\n                labelClass: 'col-sm-4',\n                inputWrapperClass: 'col-sm-6'\n              }\n            ]\n          };\n\n          var htmlFormString = Mustache.to_html(editForm_template, editFormTemplateObj);\n          \n          //create object to merge with template\n          var modalTemplateObj = {\n            id: \"mass_edit\",\n            title: \"Mass Edit\",\n            html: htmlFormString,\n            canClose: true,\n            closeButtonText: \"Cancel\"\n          };\n\n          var htmlString = Mustache.to_html(modal_template, modalTemplateObj);\n\n          //inject the modal html\n          $(\"body\").append(htmlString);\n\n          var $mass_edit_modal = $(\"#mass_edit_modal\");\n\n          var $saveButtonHtml = $('<button class=\"btn btn-success\" type=\"button\">Save</button>');\n\n          $mass_edit_modal.find(\".modal-footer\").append($saveButtonHtml);\n\n          $saveButtonHtml.click(function() {\n            alert('save');\n            // var massDeleteIds = [],\n            //     $modalBody = $mass_edit_modal.find('.modal-body'),\n            //     params='';\n\n            // $('#companies_table tr.active').each(function() {\n            //   massDeleteIds.push($(this).find('td:eq(2) input').val());\n            // });\n\n            // massDeleteIds.forEach(function(companyId) {\n            //   params += \"&companyId=\" + companyId;\n            // }); \n\n            // $.when(_deleteCompanies(widget, params)).then(function(results) {\n            //   if (results.status == 'true') {\n            //     //show success message\n            //     _showStatusMessage($modalBody, \"success\", languageFile.massDeleteCompaniesSuccess, true);\n            //     _toggleOKButtons($mass_edit_modal, [], ['.confirm-mass-delete-btn'], true);\n            //     $mass_edit_modal.find('.btn-default').text(languageFile.ok);\n            //   } else if (results.status == 'false') _showStatusMessage($modalBody, \"danger\", results.description, true);\n            // }); //end $.when closure\n          }); //end click handler\n\n          $(\".mass-edit\").click(function() {\n\n            //initialize the modal on button click\n            $(\"#mass_edit_modal\").modal();\n          });\n        });\n      });\n    }\n\n    function _initValidation(doHardSave, $button, callback) {\n\n      var validationOptions = bs.ui.forms.getDefaultValidationOptions(_saveData, undefined, callback, doHardSave, $button);\n\n      var rules = {\n        ipAddress: {\n          noAmpersands: true\n        },\n        portNumber: {\n          digits: true,\n          noAmpersands: true\n        }\n      };\n\n      var messages = {\n        ipAddress: { required: _languageFile.ipAddressRequired },\n        portNumber: { required: _languageFile.portNumberRequired }\n      };\n\n      validationOptions.rules = rules;\n      validationOptions.messages = messages;\n      _validator = $form.validate(validationOptions);\n    }\n\n    function _saveData() {\n      var promise = $.Deferred();\n\n      var typesToUpdate = [];\n\n      var $fieldsToSave = $form.find(\"input.edited\");\n      $.each($fieldsToSave, function(i, field) {\n        var $currRow = $(field).parents(\"tr\");\n        var currRowType = $currRow.find(\"div[fieldname=type]\").attr(\"fieldvalue\");\n        if ($.inArray(currRowType, typesToUpdate) === -1) {\n          typesToUpdate.push(currRowType);\n        }\n\n        if ($fieldsToSave.length === i + 1) {\n          console.log(typesToUpdate);\n        }\n      });\n\n      // serialize the form\n      var sendData = $form.serialize();\n// console.log(\"save\", sendData);\n      // $.ajax({\n      //   cache: false,\n      //   type: \"GET\",\n      //   url: _widget.typeSettings.saveDataUrl,\n      //   data: sendData,\n      //   complete: function(response) {\n      //     promise.resolve(response);\n      //   }\n      // });\n      return promise;\n    }\n\n    return {\n      init: _init\n    };\n  }());\n\n  return dd_quick_edit;\n});\n",
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_quick_edit/dd_quick_edit.js",
+			"file_size": 10241,
+			"file_write_time": 130550211917497116,
+			"settings":
+			{
+				"buffer_size": 9935,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_quick_edit/dd_quick_edit.mustache",
+			"settings":
+			{
+				"buffer_size": 2965,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_QuickEdit.xml",
+			"settings":
+			{
+				"buffer_size": 2258,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/settings/restMap.xml",
+			"settings":
+			{
+				"buffer_size": 52812,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/app.js",
+			"settings":
+			{
+				"buffer_size": 35575,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.mustache",
+			"settings":
+			{
+				"buffer_size": 7897,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.js",
+			"settings":
+			{
+				"buffer_size": 8662,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.mustache",
+			"settings":
+			{
+				"buffer_size": 6796,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.titan.utilities.js",
+			"settings":
+			{
+				"buffer_size": 5564,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 380.0,
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 400.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/nav_vert/nav_vert.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_SharedWidgets.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/resources/en-us.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.titan.utilities.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/tracking/tracking.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/sass/dd_email_settings.scss",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/shapes.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.tables.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/z_zones_table/z_zones_table.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.forms.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.js",
+		"//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/package.json",
+		"//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/app.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/banner/banner.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.utilities.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_quick_edit/dd_quick_edit.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/logs/logs.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/app/bs.dashboard.js",
+		"/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.tables.js",
+		"//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/settings/restMap.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/current_date_time/current_date_time.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_multi_stream/device_multi_stream.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/meijer/js/bigScreenChartTheme.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/meijer/sass/meijer.scss",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/logs/logs.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_logging/ds_logging.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_batch_settings/dd_batch_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_avi_capture_settings/dd_avi_capture_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/jquery.dataTables.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/jquery.dataTables.sortNumHtml.js",
+		"/C/Repos/github/HelloWorlds/Ruby/HelloWorld-OO.rb",
+		"/C/Repos/github/HelloWorlds/Ruby/HelloWorld.rb",
+		"/C/Repos/github/HelloWorlds/Python/HelloWorld.py",
+		"/C/Repos/Freeside Programming Team/MinMachine.py",
+		"/C/Users/Chris/Downloads/naive_minmachine_errorchecking.py",
+		"/C/Users/Chris/Downloads/naive_minmachine.py",
+		"/C/Users/Chris/Downloads/min.py",
+		"/C/Repos/Freeside Programming Team/minmachine-random-small-output.txt",
+		"/C/Repos/Freeside Programming Team/test1.output",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/tracking/tracking.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/meijer/settings/settings.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/lane_status/lane_status.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/lane_details/lane_details.js",
+		"/C/Users/Chris/Desktop/settings.xml",
+		"/C/Users/Chris/Desktop/lane_details.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/nav_vert/nav_vert.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/z_zone_manager/z_zone_manager.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_Calibration.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_multi_stream/device_multi_stream.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_Counting.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_batch_settings/dd_batch_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_avi_capture_settings/dd_avi_capture_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_AVICapture.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_advanced_privacy/ds_advanced_privacy.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_device_manager_settings/ds_device_manager_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_real_time_settings/dd_real_time_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_ftp_settings/dd_ftp_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_flowmap_settings/dd_flowmap_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_alerts_settings/dd_alerts_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_advanced_privacy/ds_advanced_privacy.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_alert_digital_io_settings/dd_alert_digital_io_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_ip_settings/ds_ip_settings.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_password_protection/ds_password_protection.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ms_calibration/ms_calibration.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/tracking/tracking.js",
+		"/C/Users/Chris/Desktop/data_status.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_alert_digital_io_settings/dd_alert_digital_io_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/avi_capture_summary/avi_capture_summary.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_real_time_settings/dd_real_time_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_alerts_settings/dd_alerts_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_flowmap_settings/dd_flowmap_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_ftp_settings/dd_ftp_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_device_manager_settings/ds_device_manager_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_logging/ds_logging.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_ip_settings/ds_ip_settings.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ds_password_protection/ds_password_protection.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/ms_calibration/ms_calibration.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/sass/modules/_forms.scss",
+		"//10.5.1.230/c$/Brickstream/Resources/ServicesInfo.Properties",
+		"//10.5.1.230/c$/Brickstream/tomcat/webapps/dashboardweb_gianteagle/WEB-INF/web.xml",
+		"//10.5.1.230/c$/Brickstream/Dashboard_GiantEagle/service.cmd",
+		"//10.5.1.230/c$/Brickstream/Dashboard_GiantEagle/DashboardConfig.xml",
+		"//10.5.1.230/c$/Brickstream/Dashboard_GiantEagle/DashboardWebConfig.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/data_status/data_status.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/giant_eagle/settings/settings.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/leak_test/leak_test.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/giant_eagle/resources/en-us.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/test/settings/settings.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/coles/settings/settings.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/coles/resources/en-us.xml",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/widgets/lane_status/lane_status.js",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/widgets/leak_test/leak_test.css",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/widgets/leak_test/leak_test.mustache",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/test/settings/settings.xml",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/widgets/leak_test/leak_test.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/highcharts.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/templates/drop_down.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_Diagnostics.xml",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/z_counting_zones_table/z_counting_zones_table.mustache",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/z_counting_zones_table/z_counting_zones_table.js",
+		"//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/batman/widgets/companies_tabs/companies_tabs.js",
+		"//bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_Shared.xml",
+		"//bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/widgets/banner/banner.js",
+		"//bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.utilities.js",
+		"//bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/app/bs.dashboard.js",
+		"//bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/resources/en-us.xml",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_SharedWidgets.xml",
+		"//bs-crittelmeyer/c$/Repos/brickstream_dev/DashboardWebEngine/widgets/banner/banner.js"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"-node_modules/,-WEB-INF/,-img/,-doc/,-.idea/",
+			"-node_modules/;-WEB-INF/;-img/;-doc/;-.idea/;",
+			"-node_modules/",
+			"-node_modules",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"<test",
+			"</test",
+			"<test",
+			"/dataDelivery",
+			"<restCommand>",
+			".get",
+			"updateLogger",
+			"<?",
+			"test",
+			"CLICK",
+			".click",
+			"href",
+			"fireUpdateCallBack",
+			".form-control-flat",
+			"form-control-flat",
+			".edited",
+			"edited",
+			"$table.find(\"td.editable\")",
+			"tabIndex",
+			"Save Changes",
+			"select_all_rows",
+			"jsonProp",
+			"currentProp",
+			"name",
+			"props =",
+			"$.each(props,",
+			"sources",
+			"Export",
+			"Frank",
+			"F",
+			"sort",
+			"{\n",
+			"widget",
+			"initChartData",
+			"populateChartData",
+			"categories",
+			"tracking_chart",
+			"currHour",
+			"_processPastHourValue",
+			"_processTodayValue",
+			"disableTodayValue",
+			"_disablePastHourValue",
+			"_populatePastHourValue",
+			"widget",
+			"canvasUpdate",
+			"___update",
+			"console",
+			"bindCl",
+			"console",
+			"$playButton",
+			"bindStreamDropDown",
+			"Clear",
+			"Height",
+			"$widget.find(\".clear-map\").parent().removeClass(\"hide\");",
+			"$widget.find(\".clear-map\").show();",
+			"handleDrop",
+			"storeOriginalValue",
+			"storeOriginal",
+			"display",
+			"displayOr",
+			"attr(\"disabled",
+			"toggleCont",
+			"check",
+			"enableSectionSwitchChange",
+			"consol",
+			"checkbox",
+			".val(",
+			"callback.call",
+			"chevron",
+			"<h2",
+			"_content",
+			".val(",
+			"checkbox",
+			"enableFormSwitchChange",
+			".val(",
+			"check",
+			"checkbox",
+			".val(",
+			"checkbox",
+			"console",
+			"_populateForms",
+			".val(",
+			"check",
+			".val(",
+			"checkbox",
+			".val(",
+			"checkbox",
+			".val(",
+			"toggleConta",
+			"switchSi",
+			"enableF",
+			"checkbox",
+			"_bind",
+			"checkbox",
+			"_bind",
+			"slider",
+			"checkbox",
+			"yconnectio",
+			"connectio",
+			"Ensure ",
+			"undefined",
+			".attr",
+			"_bind",
+			"_deliveryValid",
+			"_toggleTestSettingsStatus",
+			"softSave",
+			".val(",
+			"i",
+			"_populateForms",
+			"$legend",
+			"_populateField",
+			"test_sett",
+			"currentElement",
+			".val(",
+			".bootstrapSwitch",
+			"checkbox",
+			"switchChange",
+			".form {",
+			".form",
+			".field",
+			"form-control",
+			".form-control",
+			"form-control",
+			"console",
+			"changed",
+			"$mod",
+			"changed",
+			"'*'"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 4,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.js",
+					"settings":
+					{
+						"buffer_size": 7350,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								222,
+								205
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 712.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.forms.js",
+					"settings":
+					{
+						"buffer_size": 40249,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2411.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/sass/dashboard.scss",
+					"settings":
+					{
+						"buffer_size": 14623,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SCSS/SCSS.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4293.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/sass/modules/_forms.scss",
+					"settings":
+					{
+						"buffer_size": 3207,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SCSS/SCSS.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1408.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.ui.tables.js",
+					"settings":
+					{
+						"buffer_size": 18522,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9645,
+								9645
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 776.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_quick_edit/dd_quick_edit.js",
+					"settings":
+					{
+						"buffer_size": 9935,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1701,
+								1701
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 596.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_quick_edit/dd_quick_edit.mustache",
+					"settings":
+					{
+						"buffer_size": 2965,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2130,
+								2130
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML Mustache/Syntaxes/HTMLMustache.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/settings/settings_QuickEdit.xml",
+					"settings":
+					{
+						"buffer_size": 2258,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								654,
+								675
+							],
+							[
+								780,
+								801
+							],
+							[
+								906,
+								926
+							],
+							[
+								1029,
+								1047
+							],
+							[
+								1146,
+								1169
+							],
+							[
+								1278,
+								1300
+							],
+							[
+								1407,
+								1427
+							],
+							[
+								1530,
+								1548
+							],
+							[
+								1647,
+								1675
+							],
+							[
+								1796,
+								1818
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/XML/XML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 168.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/settings/restMap.xml",
+					"settings":
+					{
+						"buffer_size": 52812,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/XML/XML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 18950.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "//Bs-crittelmeyer/C/Repos/camera/Web/titan-server/app.js",
+					"settings":
+					{
+						"buffer_size": 35575,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4958.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/dd_email_settings/dd_email_settings.mustache",
+					"settings":
+					{
+						"buffer_size": 7897,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2605,
+								2464
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML Mustache/Syntaxes/HTMLMustache.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 900.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.js",
+					"settings":
+					{
+						"buffer_size": 8662,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7021,
+								7021
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2818.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/builder/dashboards/titan/widgets/device_status_overview/device_status_overview.mustache",
+					"settings":
+					{
+						"buffer_size": 6796,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								791,
+								930
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML Mustache/Syntaxes/HTMLMustache.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "//Bs-crittelmeyer/C/Repos/brickstream_dev/DashboardWebEngine/js/lib/bs.titan.utilities.js",
+					"settings":
+					{
+						"buffer_size": 5564,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3502,
+								3502
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 270.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.491071428571,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 192.0,
+	"status_bar_visible": true
+}
